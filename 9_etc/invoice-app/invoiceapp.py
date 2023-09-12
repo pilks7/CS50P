@@ -1,67 +1,41 @@
-from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
-from kivy.uix.button import Button
-from kivy.uix.popup import Popup
-from kivy.uix.textinput import TextInput
-import csv
+import toga
 
+class InvoiceApp(toga.App):
+    def startup(self):
+        # Create the main window
+        main_box = toga.Box()
+        main_box.style.flex_direction = 'column'
+        
+        add_contractor_button = toga.Button('Add Contractor', on_press=self.open_add_contractor_window)
+        main_box.add(add_contractor_button)
 
-class AddContractorPopup(Popup):
-    def __init__(self, add_contractor_callback, **kwargs):
-        super(AddContractorPopup, self).__init__(**kwargs)
-        self.add_contractor_callback = add_contractor_callback
+        self.main_window = toga.MainWindow(title='Invoice App', size=(400, 200))
+        self.main_window.content = main_box
+        self.main_window.show()
 
-        layout = BoxLayout(orientation='vertical', spacing=10)
+    def open_add_contractor_window(self, widget):
+        # Create the add contractor window
+        add_contractor_box = toga.Box()
+        add_contractor_box.style.flex_direction = 'column'
 
-        contractor_input = TextInput(hint_text='Enter Contractor')
-        layout.add_widget(contractor_input)
+        contractor_input = toga.TextInput(placeholder='Enter Contractor Name')
+        add_contractor_box.add(contractor_input)
 
-        add_button = Button(text='Add Contractor')
-        add_button.bind(on_release=lambda instance: self.add_contractor(contractor_input.text))
-        layout.add_widget(add_button)
+        add_button = toga.Button('Add', on_press=self.add_contractor)
+        add_contractor_box.add(add_button)
 
-        self.content = layout
+        add_contractor_window = toga.Window(title='Add Contractor', size=(300, 150))
+        add_contractor_window.content = add_contractor_box
+        add_contractor_window.show()
 
-    def add_contractor(self, contractor_name):
-        self.add_contractor_callback(contractor_name)
-        self.dismiss()
+    def add_contractor(self, widget):
+        contractor_name = widget.parent.children[0].value
+        # Save the contractor to a CSV file or perform any other desired action
+        print(f'Added contractor: {contractor_name}')
 
-
-class WorkEntryApp(App):
-    def build(self):
-        contractors = []
-
-        def add_work_entry(instance):
-            add_contractor_popup = AddContractorPopup(add_contractor)
-            add_contractor_popup.open()
-
-        def add_contractor(contractor_name):
-            contractors.append(contractor_name)
-            with open('contractors.csv', 'a', newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow([contractor_name])
-            print(f"Contractor '{contractor_name}' added!")
-
-        def generate_invoice(instance):
-            # Add your logic to generate an invoice here
-            print("Invoice generated!")
-
-        # Create the layout
-        layout = BoxLayout(orientation='vertical')
-
-        # Create and add the add work entry button
-        add_work_entry_button = Button(text='Add Work Entry')
-        add_work_entry_button.bind(on_release=add_work_entry)
-        layout.add_widget(add_work_entry_button)
-
-        # Create and add the generate invoice button
-        generate_invoice_button = Button(text='Generate Invoice')
-        generate_invoice_button.bind(on_release=generate_invoice)
-        layout.add_widget(generate_invoice_button)
-
-        return layout
-
+def main():
+    app = InvoiceApp('com.example.invoiceapp', 'Invoice App')
+    app.main_loop()
 
 if __name__ == '__main__':
-    WorkEntryApp().run()
+    main()
